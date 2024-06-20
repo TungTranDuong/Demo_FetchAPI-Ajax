@@ -1,0 +1,207 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product</title>
+</head>
+<body>
+    <h1>Product List</h1>
+
+    <table class="table" id="productTable">
+        <thead>
+            <tr>
+                <th>
+                    No
+                </th>
+                <th>
+                    Product Name
+                </th>
+                <th>
+                    Unit Price
+                </th>
+                <th>
+                    Unit InStock
+                </th>
+                <th>
+                    Image
+                </th>
+                <th>
+                    Category
+                </th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+
+    <div class="row">
+        <div class="col-md-4">
+            <form>
+                <div class="form-group" hidden>
+                    <label class="control-label">ProductName</label>
+                    <input id="frm_ProductId" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label class="control-label">ProductName</label>
+                    <input id="frm_ProductName" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label class="control-label">UnitPrice</label>
+                    <input id="frm_UnitPrice" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label class="control-label">UnitsInStock</label>
+                    <input id="frm_UnitsInStock" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label class="control-label">Image</label>
+                    <input id="frm_Image" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label class="control-label">Category</label>
+                    <select id="frm_CategoryId" class="form-control"></select>
+                </div>
+                <div class="form-group">
+                    <input type="submit" value="Create" onclick="postData()" class="btn btn-primary" />
+                    <input type="submit" value="Update" onclick="putData()" class="btn btn-primary" />
+                    <input type="submit" value="Delete" onclick="deleteData()" class="btn btn-primary" />
+                </div>
+            </form>
+        </div>
+    </div>
+
+</body>
+</html>
+<script>
+    var url_product = "http://localhost:7119/api/Products";
+    var url_category = "http://localhost:7119/api/Categories";
+    function LoadData() {
+        fetch(url_product)
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.querySelector("#productTable tbody");
+                tableBody.innerHTML = "";
+                var i = 1;
+                data.forEach(product => {
+                    var tr = `
+                            <tr id="${product.productId}" onClick="getData(${product.productId})">
+                            <td>${i}</td>
+                            <td>${product.productName}</td>
+                            <td>${product.unitPrice}</td>
+                            <td>${product.unitsInStock}</td>
+                            <td>${product.image}</td>
+                            <td>${product.categoryId}</td>
+                            </tr>
+                        `;
+                    i++;
+                    tableBody.innerHTML += tr;
+                });
+            }).catch(error => {
+                console.log("Error: " + error);
+            });
+    }
+    LoadData();
+
+    function LoadCategory() {
+        fetch(url_category)
+            .then(response => response.json())
+            .then(data => {
+                const selectCategory = document.getElementById('frm_CategoryId');
+                selectCategory.innerHTML = '';
+
+                data.forEach(item => {
+                    var option = document.createElement(`option`);
+                    option.value = item.categoryId;
+                    option.textContent = item.categoryName;
+                    selectCategory.appendChild(option);
+                });
+            }).catch(error => {
+                console.log("Error: " + error);
+            });
+    }
+    LoadCategory();
+
+    function getData(id) {
+        fetch(url_product + "/" + id)
+            .then(response => response.json())
+            .then(data => {
+                $("#frm_ProductId").val(data.productId);
+                $("#frm_ProductName").val(data.productName);
+                $("#frm_UnitsInStock").val(data.unitsInStock);
+                $("#frm_Image").val(data.image);
+                $("#frm_UnitPrice").val(data.unitPrice);
+                $("#frm_CategoryId").val(data.categoryId);
+            })
+    };
+
+    const getFormData = () => {
+        const formData = {
+            ProductName: document.getElementById('frm_ProductName').value,
+            UnitPrice: document.getElementById('frm_UnitPrice').value,
+            UnitsInStock: document.getElementById('frm_UnitsInStock').value,
+            Image: document.getElementById('frm_Image').value,
+            CategoryId: document.getElementById('frm_CategoryId').value,
+        };
+        return formData;
+    };
+
+    function postData() {
+        event.preventDefault();
+
+        var formData = getFormData();
+        console.log(formData);
+        $.ajax({
+            url: url_product,
+            method: "Post",
+            contentType: "application/json",
+            data: JSON.stringify(formData),
+            success: function (data) {
+                LoadData();
+            },
+            error: function (xhr, status, error) {
+                console.log("Error: " + error);
+            }
+        });
+    }
+
+    function putData() {
+        event.preventDefault();
+
+        var formData = getFormData();
+        var p_id = document.getElementById('frm_ProductId').value;
+        console.log(formData);
+        $.ajax({
+            url: url_product + "/" + p_id,
+            method: "Put",
+            contentType: "application/json",
+            data: JSON.stringify(formData),
+            success: function (data) {
+                LoadData();
+            },
+            error: function (xhr, status, error) {
+                console.log("Error: " + error);
+            }
+        });
+    }
+
+    function deleteData() {
+        event.preventDefault();
+
+        var formData = getFormData();
+        var p_id = document.getElementById('frm_ProductId').value;
+        console.log(formData);
+        $.ajax({
+            url: url_product + "/" + p_id,
+            method: "Delete",
+            contentType: "application/json",
+            data: JSON.stringify(formData),
+            success: function (data) {
+                LoadData();
+            },
+            error: function (xhr, status, error) {
+                console.log("Error: " + error);
+            }
+        });
+    }
+</script>
